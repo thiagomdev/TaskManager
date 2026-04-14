@@ -14,26 +14,73 @@ struct ContentView: View {
     @State private var newTaskTitle: String = ""
     
     var body: some View {
-        VStack {
-            Text("Task Tracker")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(.bottom)
-            
-            TaskList()
-            
-            HStack {
-                TextField("New Task", text: $newTaskTitle)
-                    .textFieldStyle(.roundedBorder)
-                Button("Add") {
-                    addTask()
+        NavigationStack {
+            NavigationLink {
+                VStack {
+                    Text("Task Tracker")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.bottom)
+                    
+                    listView
+                    
+                    HStack {
+                        TextField("New Task", text: $newTaskTitle)
+                            .textFieldStyle(.roundedBorder)
+                        Button("Add") {
+                            addTask()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(newTaskTitle.isEmpty)
+                    }
+                    .padding(.bottom)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(newTaskTitle.isEmpty)
+                .padding()
+            } label: {
+                Text("Task Tracker")
             }
-            .padding(.bottom)
+            
+            
         }
-        .padding()
+    }
+}
+
+extension ContentView {
+    @ViewBuilder
+    private var listView: some View {
+        List {
+            ForEach(tasks) { tasks in
+                HStack {
+                    Text(tasks.title)
+                        .strikethrough(tasks.isCompleted)
+                    Spacer()
+                    Image(
+                        systemName: tasks.isCompleted ?
+                        "checkmark.seal.fill" : "circlebadge")
+                    .font(.title2)
+                    .foregroundStyle(tasks.isCompleted ? .green : .gray)
+                }
+                .onTapGesture {
+                    toogleTask(tasks)
+                }
+            }
+            .onDelete(perform: deleteTask)
+        }
+        .listStyle(.inset)
+    }
+}
+
+extension ContentView {
+    private func toogleTask(_ task: Task) {
+        task.isCompleted.toggle()
+    }
+}
+
+extension ContentView {
+    private func deleteTask(at offsets: IndexSet) {
+        for index in offsets {
+            modelContext.delete(tasks[index])
+        }
     }
 }
 
